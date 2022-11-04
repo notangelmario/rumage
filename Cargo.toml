@@ -1,0 +1,11 @@
+[package]
+name = "rumage"
+version = "0.5.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.0.18", features = ["derive"] }
+comrak = "0.14.0"
+gray_matter = "0.2.4"
+serde = { version = "1.0.130", features = ["derive"] }
+walkdir = "2.3.2"
