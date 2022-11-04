@@ -8,4 +8,3 @@ Rumage is a simple web framework. It converts Markdown files to plain HTML.
 * ✨ Simple
 * 💔 ZERO JavaScript
 * 🧑‍💻 Customizable
-* 👔 Gruvbox Theme
