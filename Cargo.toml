@@ -9,7 +9,7 @@ repository = "https://github.com/notangelmario/rumage"
 documentation = "https://docs.rs/rumage"
 readme = "README.md"
 keywords = ["markdown", "static-site", "blog", "website"]
-categories = ["web-programming::frameworks"]
+categories = ["web-programming"]
 
 [dependencies]
 clap = { version = "4.0.18", features = ["derive"] }
