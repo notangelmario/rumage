@@ -38,7 +38,7 @@ pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
     let mut markdown_files: Vec<MarkdownFile> = Vec::new();
     
 
-    let walker = WalkDir::new(source_dir).into_iter()
+    let walker = WalkDir::new(source_dir).follow_links(true).into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_name().to_str().unwrap().ends_with(".md"))
         .filter(|e| !e.file_name().to_str().unwrap().starts_with("_"))
@@ -63,8 +63,6 @@ pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
     return markdown_files;
 }
 
-
-// TODO: Merge the static folder and the pages folder
 
 pub fn generate_build_dir(build_dir: &str, source_dir: &str) -> Result<()> {
     println!("Creating build folder...");
