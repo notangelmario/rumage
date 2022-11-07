@@ -185,7 +185,6 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
 }
 
 pub fn generate_footer(pages_dir: &str) -> String {
-
     if Path::new(pages_dir).join("_footer.html").exists() {
         let footer = fs::read_to_string(Path::new(pages_dir).join("_footer.html"))
             .expect("Couldn't read footer file");
@@ -214,16 +213,19 @@ pub fn generate_footer(pages_dir: &str) -> String {
 }
 
 pub fn generate_nav(pages_dir: &str) -> String {
-   let dir = fs::read_dir(pages_dir).expect("Couldn't read pages directory");
-    
-    let nav = dir.filter_map(|entry| entry.ok())
-        .filter(|entry| entry.file_name().to_str().unwrap() == "_nav.md")
-        .map(|entry| fs::read_to_string(entry.path()).unwrap())
-        .collect::<Vec<String>>();
+    if Path::new(pages_dir).join("_nav.html").exists() {
+        let nav = fs::read_to_string(Path::new(pages_dir).join("_nav.html"))
+            .expect("Couldn't read nav file");
 
-    if nav.len() > 0 {
+        return nav;
+    } else if Path::new(pages_dir).join("_nav.md").exists() {
+        let nav = fs::read_to_string(Path::new(pages_dir).join("_nav.md"))
+            .expect("Couldn't read nav file");
+    
         let mut nav_html = String::from("<nav>");
-        nav_html.push_str(&markdown_to_html(&nav[0], &ComrakOptions {
+
+    
+        nav_html.push_str(&markdown_to_html(&nav, &ComrakOptions {
             render: comrak::ComrakRenderOptions {
                 unsafe_: true,
                 ..Default::default()
