@@ -10,8 +10,8 @@ macro_rules! HEAD {
         "<head>\
             <meta charset=\"utf-8\">\
             <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-            <link rel=\"icon\" href=\"/favicon.png\">\
-            <link rel=\"stylesheet\" href=\"/style.css\">\
+            <link rel=\"icon\" href=\"favicon.png\">\
+            <link rel=\"stylesheet\" href=\"style.css\">\
             <title>{}</title>\
             <meta name=\"description\" content=\"{}\">\
         </head>"
