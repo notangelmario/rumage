@@ -16,9 +16,6 @@ permissions:
   deployments: write
   id-token: write
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build:
 
@@ -27,11 +24,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Prepare Rust
-      run: rustup toolchain install stable --profile minimal
-    
-    - name: Setup cache
-      uses: Swatinem/rust-cache@v2
+    - name: Download Rumage
+      run: |
+        wget https://github.com/notangelmario/rumage/releases/latest/download/rumage-x86_64-unknown-linux-gnu.tar.gz
+        tar -xf rumage-x86_64-unknown-linux-gnu.tar.gz
+        
+    - name: Install Rumage
+      run: |
+        sudo install ./rumage /usr/bin
     
     - name: Install Rumage
       run: cargo install rumage
