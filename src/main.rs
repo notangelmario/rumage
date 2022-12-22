@@ -29,6 +29,10 @@ enum Commands {
         /// Sets the build folder location
         #[arg(short, long, default_value_t = String::from("build"))]
         build_dir: String,
+
+        /// Sets root directory
+        #[arg(short, long, default_value_t = String::from(""))]
+        root_dir: String,
     } 
 }
 
@@ -36,7 +40,7 @@ fn main() {
     let args = Args::parse();
 
     match &args.command {
-        Commands::Build { source_dir, build_dir } => {
+        Commands::Build { source_dir, build_dir, root_dir } => {
             println!("Started build step...\n");
 
             let markdown_files: Vec<MarkdownFile> = get_files(&source_dir);
@@ -47,7 +51,7 @@ fn main() {
                 .expect("Could not generate build directory");
             
             println!("\nGenerating markdown files...");
-            generate_markdown_files(&markdown_files, &build_dir, &source_dir, &nav, &footer);
+            generate_markdown_files(&markdown_files, &build_dir, &source_dir, &root_dir, &nav, &footer);
 
             println!("Successfully built {} markdown files", markdown_files.len());
         }

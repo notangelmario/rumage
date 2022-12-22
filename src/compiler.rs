@@ -5,19 +5,16 @@ use serde::Deserialize;
 use std::{path::Path, io::Result, fs::{self, create_dir_all}};
 use comrak::{markdown_to_html, ComrakOptions};
 
-macro_rules! HEAD {
-    () => {
-        "<head>\
-            <meta charset=\"utf-8\">\
-            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-            <link rel=\"icon\" href=\"/favicon.png\">\
-            <link rel=\"stylesheet\" href=\"/style.css\">\
-            <title>{}</title>\
-            <meta name=\"description\" content=\"{}\">\
-        </head>"
-    };
+fn get_head_html(title: &str, description: &str, root_dir: &str) -> String {
+    format!("<head>\
+        <meta charset=\"utf-8\">\
+        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
+        <link rel=\"icon\" href=\"/favicon.png\">\
+        <link rel=\"stylesheet\" href=\"{root_dir}/style.css\">\
+        <title>{title}</title>\
+        <meta name=\"description\" content=\"{description}\">\
+    </head>", root_dir = root_dir, title = title, description = description)
 }
-
 
 pub struct MarkdownFile {
     path: String,
@@ -106,7 +103,7 @@ pub fn generate_build_dir(build_dir: &str, source_dir: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &str, source_dir: &str, nav: &str, footer: &str) {
+pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &str, source_dir: &str, root_dir: &str, nav: &str, footer: &str) {
     for md_file in markdown_files.iter() {
         let path = Path::new(&md_file.path);
         
@@ -134,7 +131,7 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
         };
 
         let mut html = String::from("<html>");
-        html.push_str(&format!(HEAD!(), metadata.title.unwrap_or("Title".to_owned()), metadata.description.unwrap_or("Description".to_owned())));
+        html.push_str(&get_head_html(&metadata.title.unwrap_or("Title".to_owned()), &metadata.description.unwrap_or("Description".to_owned()), root_dir));
         html.push_str("<body><main>");
 
         // Unwrap metadata.nav or use default value

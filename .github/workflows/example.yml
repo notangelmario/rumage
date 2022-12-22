@@ -37,7 +37,7 @@ jobs:
       run: cargo install rumage
 
     - name: Build
-      run: rumage build -s example -b build
+      run: rumage build -s example -b build -r /rumage
     
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v1
