@@ -1,35 +1,33 @@
 use gray_matter::Matter;
 use gray_matter::engine::YAML;
 use walkdir::WalkDir;
-use serde::Deserialize;
-use std::{path::Path, io::Result, fs::{self, create_dir_all}};
+use std::{path::Path, io::Result, fs::{self, create_dir_all}, collections::HashMap};
 use comrak::{markdown_to_html, ComrakOptions};
 
-fn get_head_html(title: &str, description: &str, root_dir: &str) -> String {
-    format!("<head>\
+
+const DEFAULT_HEAD: &str = "<head>\
         <meta charset=\"utf-8\">\
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
         <link rel=\"icon\" href=\"/favicon.png\">\
-        <link rel=\"stylesheet\" href=\"{root_dir}/style.css\">\
-        <title>{title}</title>\
-        <meta name=\"description\" content=\"{description}\">\
-    </head>", root_dir = root_dir, title = title, description = description)
+        <link rel=\"stylesheet\" href=\"{{root_dir}}style.css\">\
+        <title>{{title}}</title>\
+        <meta name=\"description\" content=\"{{description}}\">\
+    </head>";
+
+fn generate_head_html(template: &str, args: HashMap<String, String>) -> String {
+    let mut head = String::from(template);
+    for (key, value) in args {
+        // Replace {{key}} with value
+        head = head.replace(&format!("{{{{{}}}}}", key), &value);
+    }
+
+    head
 }
 
 pub struct MarkdownFile {
     path: String,
     body: String
 }
-
-#[derive(Deserialize, Default)]
-struct FrontMatter {
-    pub title: Option<String>,
-    pub description: Option<String>,
-
-    pub nav: Option<bool>,
-    pub footer: Option<bool>
-}
-
 
 pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
     let mut markdown_files: Vec<MarkdownFile> = Vec::new();
@@ -103,7 +101,7 @@ pub fn generate_build_dir(build_dir: &str, source_dir: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &str, source_dir: &str, root_dir: &str, nav: &str, footer: &str) {
+pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &str, source_dir: &str, root_dir: &str, head: &str, nav: &str, footer: &str) {
     for md_file in markdown_files.iter() {
         let path = Path::new(&md_file.path);
         
@@ -118,25 +116,32 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
             file_path
         };
 
-        let metadata: FrontMatter = match result.data {
+        let metadata: HashMap<String, String> = match result.data {
             Some(parsed) => {
-                let front_matter: FrontMatter = match parsed.deserialize() {
+                match parsed.deserialize() {
                     Ok(fm) => fm,
-                    Err(_) => FrontMatter::default()
-                };
-            
-                front_matter
+                    Err(_) => HashMap::new()
+                }
             }
-            None => FrontMatter::default()
+            None => HashMap::new()
         };
 
         let mut html = String::from("<html>");
-        html.push_str(&get_head_html(&metadata.title.unwrap_or("Title".to_owned()), &metadata.description.unwrap_or("Description".to_owned()), root_dir));
+        let mut head_args = metadata.clone();
+        head_args.insert("root_dir".to_string(), root_dir.to_string());
+
+        let head_html = if head.is_empty() {
+            generate_head_html(DEFAULT_HEAD, head_args)
+        } else {
+            generate_head_html(head, head_args)
+        };
+
+        html.push_str(&head_html);
         html.push_str("<body><main>");
 
         // Unwrap metadata.nav or use default value
         // from FrontMatter struct
-        if nav != "" && metadata.nav.unwrap_or(true) {
+        if nav != "" && metadata.get(nav).unwrap_or(&"true".to_string()) == "true" {
             html.push_str(nav);
         }
 
@@ -157,7 +162,7 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
         }));
         html.push_str("</main>");
         
-        if footer != "" && metadata.footer.unwrap_or(true) {
+        if footer != "" && metadata.get(footer).unwrap_or(&"true".to_string()) == "true" {
             html.push_str(footer);
         }
 
@@ -209,6 +214,17 @@ pub fn generate_footer(pages_dir: &str) -> String {
     return String::new();
 }
 
+pub fn generate_head(pages_dir: &str) -> String {
+    if Path::new(pages_dir).join("_head.html").exists() {
+        let nav = fs::read_to_string(Path::new(pages_dir).join("_head.html"))
+            .expect("Couldn't read head file");
+
+        return nav;
+    } 
+
+    return String::new();
+}
+
 pub fn generate_nav(pages_dir: &str) -> String {
     if Path::new(pages_dir).join("_nav.html").exists() {
         let nav = fs::read_to_string(Path::new(pages_dir).join("_nav.html"))
@@ -235,4 +251,25 @@ pub fn generate_nav(pages_dir: &str) -> String {
     }
 
     return String::new();
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_head_html() {
+        let mut metadata = HashMap::new();
+        metadata.insert("title".to_string(), "Test".to_string());
+        metadata.insert("description".to_string(), "Test description".to_string());
+        metadata.insert("root_dir".to_string(), "/".to_string());
+
+        let head = generate_head_html(DEFAULT_HEAD, metadata);
+
+        assert!(head.contains("<title>Test</title>"));
+        assert!(head.contains("<meta name=\"description\" content=\"Test description\">"));
+        assert!(head.contains("<link rel=\"stylesheet\" href=\"/style.css\">"));
+    }
+
 }

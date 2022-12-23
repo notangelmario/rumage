@@ -1,5 +1,6 @@
 ---
 title: "Rumage example"
+custom_value: "Value"
 ---
 
 # Rumage example

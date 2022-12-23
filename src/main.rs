@@ -1,11 +1,12 @@
 use clap::{Parser, Subcommand};
 use std::path::Path;
 use crate::compiler::{
-    get_files, 
+    get_files,
+    generate_head,
+    generate_nav,
     generate_build_dir, 
     generate_markdown_files, 
     generate_footer, 
-    generate_nav,
     MarkdownFile
 };
 
@@ -31,7 +32,7 @@ enum Commands {
         build_dir: String,
 
         /// Sets root directory
-        #[arg(short, long, default_value_t = String::from(""))]
+        #[arg(short, long, default_value_t = String::from("/"))]
         root_dir: String,
     } 
 }
@@ -46,12 +47,13 @@ fn main() {
             let markdown_files: Vec<MarkdownFile> = get_files(&source_dir);
             let footer: String = generate_footer(&source_dir);
             let nav: String = generate_nav(&source_dir);
+            let head: String = generate_head(&source_dir);
 
             generate_build_dir(&build_dir, &source_dir)
                 .expect("Could not generate build directory");
             
             println!("\nGenerating markdown files...");
-            generate_markdown_files(&markdown_files, &build_dir, &source_dir, &root_dir, &nav, &footer);
+            generate_markdown_files(&markdown_files, &build_dir, &source_dir, &root_dir, &head, &nav, &footer);
 
             println!("Successfully built {} markdown files", markdown_files.len());
         }
