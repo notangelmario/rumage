@@ -32,9 +32,6 @@ jobs:
     - name: Install Rumage
       run: |
         sudo install ./rumage /usr/bin
-    
-    - name: Install Rumage
-      run: cargo install rumage
 
     - name: Build
       run: rumage build -s example -b build -r /rumage
