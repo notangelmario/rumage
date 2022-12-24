@@ -275,6 +275,18 @@ mod tests {
         assert!(head.contains("<title>Test</title>"));
         assert!(head.contains("<meta name=\"description\" content=\"Test description\">"));
         assert!(head.contains("<link rel=\"stylesheet\" href=\"/style.css\">"));
+
+        let mut metadata = Map::new();
+        metadata.insert("title".to_string(), Value::String("Test".to_string()));
+        metadata.insert("description".to_string(), Value::String("Test description".to_string()));
+        metadata.insert("root_dir".to_string(), Value::String("/test/".to_string()));
+
+        let custom_head = "<title>%title%</title><meta name=\"description\" content=\"%description%\"><link rel=\"stylesheet\" href=\"%root_dir%style.css\">";
+        let head = generate_head_html(custom_head, metadata);
+
+        assert!(head.contains("<title>Test</title>"));
+        assert!(head.contains("<meta name=\"description\" content=\"Test description\">"));
+        assert!(head.contains("<link rel=\"stylesheet\" href=\"/test/style.css\">"));
     }
 
 }
