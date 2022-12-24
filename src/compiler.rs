@@ -1,24 +1,25 @@
 use gray_matter::Matter;
 use gray_matter::engine::YAML;
 use walkdir::WalkDir;
-use std::{path::Path, io::Result, fs::{self, create_dir_all}, collections::HashMap};
+use serde_json::{Map, Value};
+use std::{path::Path, io::Result, fs::{self, create_dir_all}};
 use comrak::{markdown_to_html, ComrakOptions};
 
 
 const DEFAULT_HEAD: &str = "<head>\
         <meta charset=\"utf-8\">\
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-        <link rel=\"icon\" href=\"/favicon.png\">\
-        <link rel=\"stylesheet\" href=\"{{root_dir}}style.css\">\
-        <title>{{title}}</title>\
-        <meta name=\"description\" content=\"{{description}}\">\
+        <link rel=\"icon\" href=\"%root_dir%favicon.png\">\
+        <link rel=\"stylesheet\" href=\"%root_dir%style.css\">\
+        <title>%title%</title>\
+        <meta name=\"description\" content=\"%description%\">\
     </head>";
 
-fn generate_head_html(template: &str, args: HashMap<String, String>) -> String {
+fn generate_head_html(template: &str, args: Map<String, Value>) -> String {
     let mut head = String::from(template);
-    for (key, value) in args {
-        // Replace {{key}} with value
-        head = head.replace(&format!("{{{{{}}}}}", key), &value);
+
+    for (key, value) in args.iter() {
+        head = head.replace(&format!("%{}%", key), value.as_str().unwrap_or(""));
     }
 
     head
@@ -116,19 +117,19 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
             file_path
         };
 
-        let metadata: HashMap<String, String> = match result.data {
+        let metadata: Map<String, Value> = match result.data {
             Some(parsed) => {
                 match parsed.deserialize() {
                     Ok(fm) => fm,
-                    Err(_) => HashMap::new()
+                    Err(_) => Map::new()
                 }
             }
-            None => HashMap::new()
+            None => Map::new()
         };
 
         let mut html = String::from("<html>");
         let mut head_args = metadata.clone();
-        head_args.insert("root_dir".to_string(), root_dir.to_string());
+        head_args.insert("root_dir".to_string(), Value::String(root_dir.to_string()));
 
         let head_html = if head.is_empty() {
             generate_head_html(DEFAULT_HEAD, head_args)
@@ -139,9 +140,7 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
         html.push_str(&head_html);
         html.push_str("<body><main>");
 
-        // Unwrap metadata.nav or use default value
-        // from FrontMatter struct
-        if nav != "" && metadata.get(nav).unwrap_or(&"true".to_string()) == "true" {
+        if nav != "" && metadata.get("nav") != Some(&serde_json::Value::Bool(false)) {
             html.push_str(nav);
         }
 
@@ -162,7 +161,7 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
         }));
         html.push_str("</main>");
         
-        if footer != "" && metadata.get(footer).unwrap_or(&"true".to_string()) == "true" {
+        if footer != "" && metadata.get("footer") != Some(&serde_json::Value::Bool(false)) {
             html.push_str(footer);
         }
 
@@ -260,10 +259,10 @@ mod tests {
 
     #[test]
     fn test_generate_head_html() {
-        let mut metadata = HashMap::new();
-        metadata.insert("title".to_string(), "Test".to_string());
-        metadata.insert("description".to_string(), "Test description".to_string());
-        metadata.insert("root_dir".to_string(), "/".to_string());
+        let mut metadata = Map::new();
+        metadata.insert("title".to_string(), Value::String("Test".to_string()));
+        metadata.insert("description".to_string(), Value::String("Test description".to_string()));
+        metadata.insert("root_dir".to_string(), Value::String("/".to_string()));
 
         let head = generate_head_html(DEFAULT_HEAD, metadata);
 

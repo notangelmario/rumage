@@ -1,6 +1,6 @@
 ---
 title: "Rumage example"
-custom_value: "Value"
+description: "This is an example made with Rumage"
 ---
 
 # Rumage example
