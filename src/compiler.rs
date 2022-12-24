@@ -2,7 +2,7 @@ use gray_matter::Matter;
 use gray_matter::engine::YAML;
 use walkdir::WalkDir;
 use serde_json::{Map, Value};
-use std::{path::Path, io::Result, fs::{self, create_dir_all}};
+use std::{path::Path, io::{Result, self}, fs::{self, create_dir_all}};
 use comrak::{markdown_to_html, ComrakOptions};
 
 
@@ -63,9 +63,10 @@ pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
 pub fn generate_build_dir(build_dir: &str, source_dir: &str) -> Result<()> {
     println!("Creating build folder...");
 
-    let _ = fs::remove_dir_all(build_dir);
+    // let _ = fs::remove_dir_all(build_dir);
+    remove_dir_contents(&build_dir);
 
-    fs::create_dir_all(build_dir)
+    fs::create_dir_all(&build_dir)
         .expect("Couldn't generate build directory!");
 
     let walker = WalkDir::new(source_dir).into_iter()
@@ -252,6 +253,12 @@ pub fn generate_nav(pages_dir: &str) -> String {
     return String::new();
 }
 
+fn remove_dir_contents<P: AsRef<Path>>(path: P) -> io::Result<()> {
+    for entry in fs::read_dir(path)? {
+        fs::remove_file(entry?.path())?;
+    }
+    Ok(())
+}
 
 #[cfg(test)]
 mod tests {
