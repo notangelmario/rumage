@@ -63,8 +63,7 @@ pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
 pub fn generate_build_dir(build_dir: &str, source_dir: &str) -> Result<()> {
     println!("Creating build folder...");
 
-    // let _ = fs::remove_dir_all(build_dir);
-    remove_dir_contents(&build_dir);
+    let _ = remove_dir_contents(&build_dir);
 
     fs::create_dir_all(&build_dir)
         .expect("Couldn't generate build directory!");
