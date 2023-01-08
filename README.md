@@ -31,6 +31,29 @@ For building:
 rumage build
 ```
 
+## Pages
+
+Rumage supports both Markdown and HTML pages. Create an `index.md` or `index.html`
+to create a home page.
+
+Also add some properties at the top to add a title and description. By default, you need to 
+fill those in, else they will replaced with `%title%` and `%description%`. (this will be addressed soon),
+
+`index.md`
+```html
+---
+title: Homepage
+description: Cool page
+---
+
+# Homepage
+lorem
+```
+
+If you want to do more with properties, check [Head tag](#head-tag).
+
+You can include HTML in Markdown files, but you can't include Markdown in HTML files. (this will be addressed soon)
+
 ## Style
 
 To add style to your website, add a `style.css` in your source folder. Rumage
