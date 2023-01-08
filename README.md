@@ -15,6 +15,15 @@ to troubleshoot. I use it for my [personal website](https://angelmario.eu).
 * 💔 ZERO JavaScript
 * 🧑‍💻 Customizable
 
+## Installation
+
+Make sure you have [installed cargo](https://rustup.rs/) and install rumage like this:
+```
+cargo install rumage
+```
+
+[or check releases](https://github.com/notangelmario/rumage/releases)
+
 ## Usage
 
 For building:
