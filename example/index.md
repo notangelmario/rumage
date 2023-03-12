@@ -22,6 +22,8 @@ This is an numbered list:
 2. Item 2
 3. Item 3
 
+<+components/+component>
+
 Tables are also supported
 
 | Hour/Day | Monday | Tuesday | Wednesday | Thursday | Friday |

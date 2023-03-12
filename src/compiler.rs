@@ -4,6 +4,7 @@ use walkdir::WalkDir;
 use serde_json::{Map, Value};
 use std::{path::Path, io::{Result, self}, fs::{self, create_dir_all}};
 use comrak::{markdown_to_html, ComrakOptions};
+use regex::Regex;
 
 
 const DEFAULT_HEAD: &str = "<head>\
@@ -37,6 +38,7 @@ pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
     let walker = WalkDir::new(source_dir).follow_links(true).into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.file_name().to_str().unwrap().ends_with(".md"))
+        .filter(|e| !e.file_name().to_str().unwrap().starts_with("+"))
         .filter(|e| !e.file_name().to_str().unwrap().starts_with("_"))
         .filter(|e| e.metadata().expect("Couldn't fetch metadata").is_file());
 
@@ -102,6 +104,41 @@ pub fn generate_build_dir(build_dir: &str, source_dir: &str) -> Result<()> {
     Ok(())
 }
 
+pub fn generate_component(component_name: &str, source_dir: &str) -> String {
+    let component_path = Path::new(source_dir).join(format!("+{}.md", component_name));
+    let component_path = component_path.to_str().unwrap();
+
+    println!("Generating component: {}", component_path);
+
+    let component_contents = fs::read_to_string(component_path);
+
+    // Convert to html
+    let component_contents = match component_contents {
+        Ok(contents) => {
+            markdown_to_html(&contents, &ComrakOptions {
+                extension: comrak::ComrakExtensionOptions {
+                    strikethrough: true,
+                    table: true,
+                    autolink: true,
+                    tasklist: true,
+                    superscript: false,
+                    ..Default::default()
+                },
+                render: comrak::ComrakRenderOptions {
+                    unsafe_: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+        }
+        Err(_) => {
+            return String::from("");
+        }
+    };
+
+    component_contents
+}
+
 pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &str, source_dir: &str, root_dir: &str, head: &str, nav: &str, footer: &str) {
     for md_file in markdown_files.iter() {
         let path = Path::new(&md_file.path);
@@ -144,7 +181,21 @@ pub fn generate_markdown_files(markdown_files: &Vec<MarkdownFile>, build_dir: &s
             html.push_str(nav);
         }
 
-        html.push_str(&markdown_to_html(&result.content, &ComrakOptions {
+        // Components
+        // Search for <+component_name> and replace with the contents of the component
+        // include the arrows so we also replace the < and > in the html
+        let body = result.content.clone();
+        let mut body_with_components = body.clone();
+        let re = Regex::new(r"<\+.*?>").unwrap();
+        
+        for cap in re.captures_iter(&body) {
+            let component_name: &str = &cap[0];
+            let component_name = component_name.replace("<+", "").replace(">", "");
+            let component_html = generate_component(&component_name, source_dir);
+            body_with_components = body_with_components.replace(format!("<+{}>", component_name).as_str(), &component_html);
+        }
+
+        html.push_str(&markdown_to_html(&body_with_components, &ComrakOptions {
             extension: comrak::ComrakExtensionOptions {
                 strikethrough: true,
                 table: true,
