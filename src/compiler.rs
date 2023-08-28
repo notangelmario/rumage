@@ -5,12 +5,11 @@ use serde_json::{Map, Value};
 use std::{path::Path, io::{Result, self}, fs::{self, create_dir_all}};
 use comrak::{markdown_to_html, ComrakOptions};
 
-
 const DEFAULT_HEAD: &str = "<head>\
         <meta charset=\"utf-8\">\
         <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\
-        <link rel=\"icon\" href=\"%root_dir%favicon.png\">\
-        <link rel=\"stylesheet\" href=\"%root_dir%style.css\">\
+        <link rel=\"icon\" href=\"%root_dir%/favicon.png\">\
+        <link rel=\"stylesheet\" href=\"%root_dir%/style.css\">\
         <title>%title%</title>\
         <meta name=\"description\" content=\"%description%\">\
     </head>";
@@ -33,12 +32,13 @@ pub struct MarkdownFile {
 pub fn get_files(source_dir: &str) -> Vec<MarkdownFile> {
     let mut markdown_files: Vec<MarkdownFile> = Vec::new();
     
-
-    let walker = WalkDir::new(source_dir).follow_links(true).into_iter()
+    let walker = WalkDir::new(source_dir)
+        .follow_links(true)
+        .into_iter()
         .filter_map(|e| e.ok())
-        .filter(|e| e.file_name().to_str().unwrap().ends_with(".md"))
-        .filter(|e| !e.file_name().to_str().unwrap().starts_with("_"))
-        .filter(|e| e.metadata().expect("Couldn't fetch metadata").is_file());
+        .filter(|e| e.metadata().expect("Couldn't fetch metadata").is_file())
+        .filter(|e| e.file_name().to_str().expect("Couldn't convert filename to string").ends_with(".md"))
+        .filter(|e| !e.file_name().to_str().unwrap().starts_with("_"));
 
 
     for entry in walker {
