@@ -288,5 +288,4 @@ mod tests {
         assert!(head.contains("<meta name=\"description\" content=\"Test description\">"));
         assert!(head.contains("<link rel=\"stylesheet\" href=\"/test/style.css\">"));
     }
-
 }

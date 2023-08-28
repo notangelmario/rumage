@@ -48,6 +48,7 @@ fn main() {
             let footer: String = generate_footer(&source_dir);
             let nav: String = generate_nav(&source_dir);
             let head: String = generate_head(&source_dir);
+            let root_dir: &str = &root_dir.trim_end_matches("/");
 
             generate_build_dir(&build_dir, &source_dir)
                 .expect("Could not generate build directory");
