@@ -1,3 +1,4 @@
+use url::Url;
 use clap::{Parser, Subcommand};
 use std::path::Path;
 use crate::compiler::{
@@ -49,6 +50,11 @@ fn main() {
             let nav: String = generate_nav(&source_dir);
             let head: String = generate_head(&source_dir);
             let root_dir: &str = &root_dir.trim_end_matches("/");
+
+            if Url::parse(&format!("{}{}", "https://example.com/", &root_dir)).is_err() {
+                eprintln!("\"{}\" is not a valid URL", root_dir);
+                std::process::exit(1);
+            }
 
             generate_build_dir(&build_dir, &source_dir)
                 .expect("Could not generate build directory");
